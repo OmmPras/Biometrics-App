@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biometric Authentication</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes ripple {
+            0% { transform: scale(0.8); opacity: 1; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+        
+        .fingerprint-active {
+            animation: pulse 1.5s infinite;
+        }
+        
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(59, 130, 246, 0.5);
+            transform: scale(0);
+            animation: ripple 1s linear infinite;
+            pointer-events: none;
+        }
+        
+        .face-scan {
+            position: relative;
+            overflow: hidden;
+            border-radius: 50%;
+        }
+        
+        .face-scan::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                to bottom right,
+                transparent, transparent, transparent,
+                rgba(59, 130, 246, 0.3), transparent, transparent, transparent
+            );
+            transform: rotate(0deg);
+            animation: scan 2s linear infinite;
+        }
+        
+        @keyframes scan {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .voice-wave {
+            position: relative;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .voice-wave span {
+            display: block;
+            width: 4px;
+            height: 20px;
+            background: #3b82f6;
+            margin: 0 2px;
+            border-radius: 2px;
+            animation: voice 1.2s infinite ease-in-out;
+        }
+        
+        .voice-wave span:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+        
+        .voice-wave span:nth-child(3) {
+            animation-delay: 0.2s;
+        }
+        
+        .voice-wave span:nth-child(4) {
+            animation-delay: 0.3s;
+        }
+        
+        .voice-wave span:nth-child(5) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes voice {
+            0%, 100% { height: 10px; }
+            50% { height: 30px; }
+        }
+        
+        .tab-active {
+            border-bottom: 3px solid #3b82f6;
+            color: #3b82f6;
+            font-weight: 600;
+        }
+        
+        .success-checkmark {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto;
+            position: relative;
+        }
+        
+        .success-checkmark .check-icon {
+            width: 80px;
+            height: 80px;
+            position: relative;
+            border-radius: 50%;
+            box-sizing: content-box;
+            border: 4px solid #4CAF50;
+        }
+        
+        .success-checkmark .check-icon::before {
+            top: 3px;
+            left: -2px;
+            width: 30px;
+            transform-origin: 100% 50%;
+            border-radius: 100px 0 0 100px;
+        }
+        
+        .success-checkmark .check-icon::after {
+            top: 0;
+            left: 30px;
+            width: 60px;
+            transform-origin: 0 50%;
+            border-radius: 0 100px 100px 0;
+            animation: rotate-circle 4.25s ease-in;
+        }
+        
+        .success-checkmark .check-icon::before, .success-checkmark .check-icon::after {
+            content: '';
+            height: 100px;
+            position: absolute;
+            background: transparent;
+            transform: rotate(-45deg);
+        }
+        
+        .success-checkmark .check-icon .icon-line {
+            height: 5px;
+            background-color: #4CAF50;
+            display: block;
+            border-radius: 2px;
+            position: absolute;
+            z-index: 10;
+        }
+        
+        .success-checkmark .check-icon .icon-line.line-tip {
+            top: 46px;
+            left: 14px;
+            width: 25px;
+            transform: rotate(45deg);
+            animation: icon-line-tip 0.75s;
+        }
+        
+        .success-checkmark .check-icon .icon-line.line-long {
+            top: 38px;
+            right: 8px;
+            width: 47px;
+            transform: rotate(-45deg);
+            animation: icon-line-long 0.75s;
+        }
+        
+        @keyframes icon-line-tip {
+            0% { width: 0; left: 1px; top: 19px; }
+            54% { width: 0; left: 1px; top: 19px; }
+            70% { width: 50px; left: -8px; top: 37px; }
+            84% { width: 17px; left: 21px; top: 48px; }
+            100% { width: 25px; left: 14px; top: 46px; }
+        }
+        
+        @keyframes icon-line-long {
+            0% { width: 0; right: 46px; top: 54px; }
+            65% { width: 0; right: 46px; top: 54px; }
+            84% { width: 55px; right: 0px; top: 35px; }
+            100% { width: 47px; right: 8px; top: 38px; }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl overflow-hidden w-full max-w-md">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-blue-500 to-blue-600 p-6 text-white text-center">
+            <h1 class="text-2xl font-bold">Secure Authentication</h1>
+            <p class="text-blue-100 mt-1">Choose your preferred biometric method</p>
+        </div>
+        
+        <!-- Tabs -->
+        <div class="flex border-b">
+            <button id="fingerprint-tab" class="flex-1 py-4 px-2 text-center tab-active" onclick="switchTab('fingerprint')">
+                <i class="fas fa-fingerprint text-xl mb-1"></i>
+                <p class="text-sm">Fingerprint</p>
+            </button>
+            <button id="face-tab" class="flex-1 py-4 px-2 text-center text-gray-500" onclick="switchTab('face')">
+                <i class="fas fa-user-circle text-xl mb-1"></i>
+                <p class="text-sm">Face ID</p>
+            </button>
+            <button id="voice-tab" class="flex-1 py-4 px-2 text-center text-gray-500" onclick="switchTab('voice')">
+                <i class="fas fa-microphone text-xl mb-1"></i>
+                <p class="text-sm">Voice</p>
+            </button>
+        </div>
+        
+        <!-- Content Area -->
+        <div class="p-6">
+            <!-- Fingerprint Content -->
+            <div id="fingerprint-content" class="text-center">
+                <div class="relative w-40 h-40 mx-auto mb-6">
+                    <div id="fingerprint-sensor" class="w-full h-full bg-gray-100 rounded-full flex items-center justify-center cursor-pointer">
+                        <i class="fas fa-fingerprint text-5xl text-blue-500"></i>
+                        <div id="ripple-container" class="absolute inset-0"></div>
+                    </div>
+                </div>
+                <h3 class="text-lg font-semibold mb-2">Fingerprint Authentication</h3>
+                <p class="text-gray-600 mb-6">Place your finger on the sensor to verify your identity</p>
+                <button id="fingerprint-btn" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-6 rounded-full transition">
+                    Start Scanning
+                </button>
+            </div>
+            
+            <!-- Face ID Content -->
+            <div id="face-content" class="text-center hidden">
+                <div class="face-scan w-40 h-40 mx-auto mb-6 bg-gray-200 flex items-center justify-center">
+                    <i class="fas fa-user text-5xl text-blue-500"></i>
+                </div>
+                <h3 class="text-lg font-semibold mb-2">Facial Recognition</h3>
+                <p class="text-gray-600 mb-6">Position your face in the frame for identification</p>
+                <button id="face-btn" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-6 rounded-full transition">
+                    Start Face Scan
+                </button>
+            </div>
+            
+            <!-- Voice Content -->
+            <div id="voice-content" class="text-center hidden">
+                <div class="voice-wave w-40 h-20 mx-auto mb-6 flex items-center justify-center">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <h3 class="text-lg font-semibold mb-2">Voice Authentication</h3>
+                <p class="text-gray-600 mb-6">Say the phrase: "My voice is my password"</p>
+                <button id="voice-btn" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-6 rounded-full transition">
+                    Start Recording
+                </button>
+            </div>
+            
+            <!-- Success Message (hidden initially) -->
+            <div id="success-message" class="text-center hidden">
+                <div class="success-checkmark mb-6">
+                    <div class="check-icon">
+                        <span class="icon-line line-tip"></span>
+                        <span class="icon-line line-long"></span>
+                    </div>
+                </div>
+                <h3 class="text-xl font-semibold text-green-600 mb-2">Authentication Successful!</h3>
+                <p class="text-gray-600 mb-6">You have been successfully verified</p>
+                <button onclick="resetAuthentication()" class="bg-green-500 hover:bg-green-600 text-white py-2 px-6 rounded-full transition">
+                    Continue
+                </button>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="bg-gray-50 p-4 text-center text-sm text-gray-500">
+            <p>Having trouble? <a href="#" class="text-blue-500 hover:underline">Use password instead</a></p>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching functionality
+        function switchTab(tabName) {
+            // Hide all content
+            document.getElementById('fingerprint-content').classList.add('hidden');
+            document.getElementById('face-content').classList.add('hidden');
+            document.getElementById('voice-content').classList.add('hidden');
+            
+            // Remove active class from all tabs
+            document.getElementById('fingerprint-tab').classList.remove('tab-active');
+            document.getElementById('fingerprint-tab').classList.add('text-gray-500');
+            document.getElementById('face-tab').classList.remove('tab-active');
+            document.getElementById('face-tab').classList.add('text-gray-500');
+            document.getElementById('voice-tab').classList.remove('tab-active');
+            document.getElementById('voice-tab').classList.add('text-gray-500');
+            
+            // Show selected content and update tab
+            document.getElementById(`${tabName}-content`).classList.remove('hidden');
+            document.getElementById(`${tabName}-tab`).classList.add('tab-active');
+            document.getElementById(`${tabName}-tab`).classList.remove('text-gray-500');
+        }
+        
+        // Fingerprint authentication
+        const fingerprintBtn = document.getElementById('fingerprint-btn');
+        const fingerprintSensor = document.getElementById('fingerprint-sensor');
+        const rippleContainer = document.getElementById('ripple-container');
+        
+        fingerprintBtn.addEventListener('click', () => {
+            fingerprintBtn.disabled = true;
+            fingerprintBtn.textContent = 'Scanning...';
+            fingerprintSensor.classList.add('fingerprint-active');
+            
+            // Create ripple effect
+            createRipple();
+            
+            // Simulate fingerprint scan
+            setTimeout(() => {
+                fingerprintSensor.classList.remove('fingerprint-active');
+                showSuccess();
+            }, 3000);
+        });
+        
+        function createRipple() {
+            const ripple = document.createElement('div');
+            ripple.classList.add('ripple');
+            ripple.style.width = '100%';
+            ripple.style.height = '100%';
+            rippleContainer.appendChild(ripple);
+            
+            setTimeout(() => {
+                ripple.remove();
+            }, 1000);
+            
+            // Continue ripple effect while scanning
+            if (fingerprintBtn.disabled) {
+                setTimeout(createRipple, 800);
+            }
+        }
+        
+        // Face authentication
+        const faceBtn = document.getElementById('face-btn');
+        
+        faceBtn.addEventListener('click', () => {
+            faceBtn.disabled = true;
+            faceBtn.textContent = 'Scanning...';
+            
+            // Simulate face scan
+            setTimeout(() => {
+                showSuccess();
+            }, 3000);
+        });
+        
+        // Voice authentication
+        const voiceBtn = document.getElementById('voice-btn');
+        const voiceWave = document.querySelector('.voice-wave');
+        
+        voiceBtn.addEventListener('click', () => {
+            voiceBtn.disabled = true;
+            voiceBtn.textContent = 'Listening...';
+            
+            // Animate voice waves
+            const waves = voiceWave.querySelectorAll('span');
+            waves.forEach(wave => {
+                wave.style.animationPlayState = 'running';
+            });
+            
+            // Simulate voice recognition
+            setTimeout(() => {
+                waves.forEach(wave => {
+                    wave.style.animationPlayState = 'paused';
+                });
+                showSuccess();
+            }, 3000);
+        });
+        
+        // Show success message
+        function showSuccess() {
+            document.getElementById('fingerprint-content').classList.add('hidden');
+            document.getElementById('face-content').classList.add('hidden');
+            document.getElementById('voice-content').classList.add('hidden');
+            document.getElementById('success-message').classList.remove('hidden');
+        }
+        
+        // Reset authentication
+        function resetAuthentication() {
+            // Reset fingerprint
+            fingerprintBtn.disabled = false;
+            fingerprintBtn.textContent = 'Start Scanning';
+            fingerprintSensor.classList.remove('fingerprint-active');
+            
+            // Reset face
+            faceBtn.disabled = false;
+            faceBtn.textContent = 'Start Face Scan';
+            
+            // Reset voice
+            voiceBtn.disabled = false;
+            voiceBtn.textContent = 'Start Recording';
+            const waves = voiceWave.querySelectorAll('span');
+            waves.forEach(wave => {
+                wave.style.animationPlayState = 'paused';
+            });
+            
+            // Show current tab content
+            document.getElementById('success-message').classList.add('hidden');
+            const activeTab = document.querySelector('.tab-active').id.replace('-tab', '');
+            document.getElementById(`${activeTab}-content`).classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
